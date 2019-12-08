@@ -26,7 +26,5 @@ namespace AsioWeb
 	using RequstType = std::string;
 	using RequestFunc = std::function<void(std::ostream&, WebRequest&)>;
 
-	using resource_type = typename std::map<RequstPathRegx, std::unordered_map<RequstType, RequestFunc>>;
-
-
+	using ResourceType = typename std::map<RequstPathRegx, std::unordered_map<RequstType, RequestFunc>>;
 }

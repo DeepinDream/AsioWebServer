@@ -22,14 +22,6 @@ namespace AsioWeb
 		{
 		}
 
-		// ServerBase(const ServerBase<socket_type>& ls)
-		// : endpoint(ls.endpoint)
-		// , acceptor(ls.acceptor)
-		// , num_threads(ls.num_threads)
-		// {
-
-		// }
-
 		virtual ~ServerBase() {}
 
 		// 启动服务器
@@ -64,8 +56,8 @@ namespace AsioWeb
 				t.join();
 		}
 
-		resource_type resource;
-		resource_type default_resource;
+		ResourceType resource;
+		ResourceType default_resource;
 	protected:
 		// 需要不同类型的服务器实现这个方法
 		virtual void accept() {}
@@ -158,7 +150,7 @@ namespace AsioWeb
 		std::vector<std::thread> threads;
 
 		// 所有的资源及默认资源都会在 vector 尾部添加, 并在 start() 中创建
-		std::vector<resource_type::iterator> all_resources;
+		std::vector<ResourceType::iterator> all_resources;
 	};
 
 	template<typename socket_type>

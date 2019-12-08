@@ -16,9 +16,14 @@ int main(int, char**)
 
 	// start_server<Server<HTTP>>(*serverPtr);
 
-	RestfulApi<HTTP> api(serverPtr);
-	api.Post(std::string("^/string/?$"), PathString);
+	RestfulApi api(serverPtr->resource);
+	api.Post(std::string("^/string/?$"), PostString);
+	api.Get(std::string("^/info/?$"), GetInfo);
+	api.Get(std::string("^/match/([0-9a-zA-Z]+)/?$"), GetMatch);
 
+	RestfulApi defaultApi(serverPtr->default_resource);
+	defaultApi.Get(std::string("^/?(.*)$"), GetDefault);
+	
 	serverPtr->start();
 	return 0;
 }
