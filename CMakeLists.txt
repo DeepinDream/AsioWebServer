@@ -10,13 +10,4 @@ message("ATP_ROOT: ${ATP_ROOT}")
 
 add_subdirectory(src)
 
-# add_subdirectory(test)
-
-# include(CTest)
-# enable_testing()
-
-# add_executable(app main.cpp)
-
-# set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-# set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-# include(CPack)
+add_subdirectory(test)
