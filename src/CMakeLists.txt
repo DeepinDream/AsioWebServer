@@ -13,7 +13,13 @@ file(GLOB_RECURSE WEBSERVER_SRC ./WebServer/*.cpp ./WebServer/*.h)
 
 file(GLOB app_SRCS "main.cpp")
 
-add_executable(app ${HEAD_RIGEL_EDITOR} ${WEBSERVER_SRC} ${app_SRCS})
+include_directories(./)
+
+add_executable(app 
+${HEAD_RIGEL_EDITOR} 
+${WEBSERVER_SRC} 
+${app_SRCS}
+)
 
 # 打开断点
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")  

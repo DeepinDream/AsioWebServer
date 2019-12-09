@@ -25,6 +25,19 @@ namespace AsioWeb
 	using RequstPathRegx = std::string;
 	using RequstType = std::string;
 	using RequestFunc = std::function<void(std::ostream&, WebRequest&)>;
-
 	using ResourceType = typename std::map<RequstPathRegx, std::unordered_map<RequstType, RequestFunc>>;
+
+	std::string getContentStr(std::shared_ptr<std::istream> content)
+	{
+		using std::string;
+		using std::stringstream;
+		stringstream ss;
+		string str;
+		if (content.get() != nullptr)
+		{
+			*content >> ss.rdbuf(); // 将请求内容读取到 stringstream
+			str = ss.str();
+		}
+		return str;
+	}
 }

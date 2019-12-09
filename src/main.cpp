@@ -14,8 +14,6 @@ int main(int, char**)
 	// HTTP 服务运行在 12345 端口，并启用四个线程
 	auto serverPtr = std::make_shared<Server<HTTP>>(12345, 4);
 
-	// start_server<Server<HTTP>>(*serverPtr);
-
 	RestfulApi api(serverPtr->resource);
 	api.Post(std::string("^/string/?$"), PostString);
 	api.Get(std::string("^/info/?$"), GetInfo);
@@ -25,5 +23,6 @@ int main(int, char**)
 	defaultApi.Get(std::string("^/?(.*)$"), GetDefault);
 	
 	serverPtr->start();
+
 	return 0;
 }

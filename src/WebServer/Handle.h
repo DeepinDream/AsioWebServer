@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ServerBase.h"
+#include "HttpAssembler.h"
 #include <fstream>
 
 using namespace std;
@@ -19,8 +20,7 @@ void PostString(ostream& response, WebRequest& request)
 	}
 
 	// 直接返回请求结果
-	response << "HTTP/1.1 200 OK\r\nContent-Length: " << content.length() << "\r\n\r\n"
-			 << content;
+	response << getResponse(content);
 }
 
 // 处理访问 /info 的 GET 请求, 返回请求的信息
@@ -39,6 +39,8 @@ void GetInfo(ostream &response, WebRequest &request)
 
 	response << "HTTP/1.1 200 OK\r\nContent-Length: " << content_stream.tellp() << "\r\n\r\n"
 			 << content_stream.rdbuf();
+	// auto res = getResponse(content_stream);
+	// response << res;
 }
 
 // 处理访问 /match/[字母+数字组成的字符串] 的 GET 请求, 例如执行请求 GET /match/abc123, 将返回 abc123
