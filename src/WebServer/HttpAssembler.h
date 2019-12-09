@@ -22,4 +22,16 @@ namespace AsioWeb
         return response.rdbuf();
     }
 
+    void HttpPrint(std::ostream& os, const std::string& content)
+    {
+        os << "HTTP/1.1 200 OK\r\nContent-Length: " << content.size() << "\r\n\r\n"
+           << content;
+    }
+
+    void HttpPrint(std::ostream& os, std::stringstream& contentStream)
+    {
+        os << "HTTP/1.1 200 OK\r\nContent-Length: " << contentStream.tellp() << "\r\n\r\n"
+           << contentStream.rdbuf();
+    }
+
 }
