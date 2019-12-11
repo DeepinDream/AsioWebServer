@@ -9,14 +9,13 @@ file(GLOB_RECURSE test_SRCS *_test.cpp)
 
 include_directories(${ATP_ROOT})
 include_directories(${ATP_ROOT}/src)
-# include_directories(${ATP_ROOT}/src/mod2)
-# include_directories(${ATP_ROOT}/src/timezone)
 
-# file(GLOB_RECURSE HEAD_RIGEL_EDITOR *.h)  #GLOB 获取./include/目录下的*.h 储存在变量HEAD_RIGEL_EDITOR中
-# file(GLOB_RECURSE MOD1_SRCS ${ATP_ROOT}/src/mod1/*.cpp)
+file(GLOB_RECURSE SRC_SRCS ${ATP_ROOT}/src/*.cpp ${ATP_ROOT}/src/*.h)
+list(REMOVE_ITEM SRC_SRCS ${ATP_ROOT}/src/main.cpp) # 排除 src 文件夹的 main.cpp
 
-add_executable(testapp ${test_SRCS} 
-# ${MOD1_SRCS}
+add_executable(testapp 
+${test_SRCS} 
+${SRC_SRCS}
 )
 
 # 添加库

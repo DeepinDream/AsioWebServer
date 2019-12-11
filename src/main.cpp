@@ -5,6 +5,8 @@
 #include "WebServer/Handle.h"
 #include "WebServer/RestfulApi.h"
 
+#include "Logger/LogStream.h"
+
 using namespace AsioWeb;
 
 int main(int, char**)
@@ -21,6 +23,9 @@ int main(int, char**)
 
 	RestfulApi defaultApi(serverPtr->default_resource);
 	defaultApi.Get(std::string("^/?(.*)$"), GetDefault);
+
+	LogStream log;
+	log << 123;
 	
 	serverPtr->start();
 
