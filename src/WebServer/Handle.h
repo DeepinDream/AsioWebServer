@@ -20,7 +20,7 @@ void PostString(ostream& response, WebRequest& request)
 	}
 
 	// 直接返回请求结果
-	response << getResponse(content);
+	HttpPrint(response, content);
 }
 
 // 处理访问 /info 的 GET 请求, 返回请求的信息
@@ -37,18 +37,15 @@ void GetInfo(ostream &response, WebRequest &request)
 	// 获得 content_stream 的长度(使用 content.tellp() 获得)
 	content_stream.seekp(0, ios::end);
 
-	response << "HTTP/1.1 200 OK\r\nContent-Length: " << content_stream.tellp() << "\r\n\r\n"
-			 << content_stream.rdbuf();
-	// auto res = getResponse(content_stream);
-	// response << res;
+	HttpPrint(response, content_stream);
 }
 
 // 处理访问 /match/[字母+数字组成的字符串] 的 GET 请求, 例如执行请求 GET /match/abc123, 将返回 abc123
 void GetMatch(ostream &response, WebRequest &request)
 {
 	string number = request.path_match[1];
-	response << "HTTP/1.1 200 OK\r\nContent-Length: " << number.length() << "\r\n\r\n"
-			 << number;
+
+	HttpPrint(response, number);
 }
 
 // 处理默认 GET 请求, 如果没有其他匹配成功，则这个函数会被调用
@@ -99,7 +96,7 @@ void GetDefault(ostream &response, WebRequest &request)
 	{
 		// 文件不存在时，返回无法打开文件
 		string content = "Could not open file " + filename;
-		response << "HTTP/1.1 400 Bad WebRequest\r\nContent-Length: " << content.length() << "\r\n\r\n"
+		response << "HTTP/1.1 400 Bad Request\r\nContent-Length: " << content.length() << "\r\n\r\n"
 				 << content;
 	}
 }

@@ -7,24 +7,11 @@
 
 namespace AsioWeb
 {
-    // 封装答复
-    std::string getResponse(const std::string& content)
-    {
-        return utils::StringFormat(std::string("HTTP/1.1 200 OK\r\nContent-Length: %d\r\n\r\n%s"), content.length(), content);
-    }
-
-    // 封装答复
-    auto getResponse(std::stringstream& contentStream) -> decltype(contentStream.rdbuf())
-    {
-        std::stringstream response;
-	    response << "HTTP/1.1 200 OK\r\nContent-Length: " << contentStream.tellp() << "\r\n\r\n"
-			 << contentStream.rdbuf();
-        return response.rdbuf();
-    }
+    static const std::string HTTP_HEAD("HTTP/1.1 200 OK\r\n");
 
     void HttpPrint(std::ostream& os, const std::string& content)
     {
-        os << "HTTP/1.1 200 OK\r\nContent-Length: " << content.size() << "\r\n\r\n"
+        os << HTTP_HEAD << "Content-Length: " << content.size() << "\r\n\r\n"
            << content;
     }
 
