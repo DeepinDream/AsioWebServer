@@ -8,17 +8,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # 开启 debug 单步调试
 add_definitions("-Wall -g")
 
-file(GLOB_RECURSE HEAD_RIGEL_EDITOR *.h)  #GLOB 获取./include/目录下的*.h 储存在变量HEAD_RIGEL_EDITOR中
-file(GLOB_RECURSE WEBSERVER_SRC ./WebServer/*.cpp ./WebServer/*.h)
+file(GLOB_RECURSE ALL_SRCS ./*.cpp ./*.h)
 
 file(GLOB app_SRCS "main.cpp")
 
 include_directories(./)
 
 add_executable(app 
-${HEAD_RIGEL_EDITOR} 
-${WEBSERVER_SRC} 
 ${app_SRCS}
+${ALL_SRCS}
 )
 
 # 打开断点
