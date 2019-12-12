@@ -1,5 +1,3 @@
-// @Author Lin Ya
-// @Email xxbbb@vip.qq.com
 #include "AsyncLogger.h"
 #include <assert.h>
 #include <stdio.h>
@@ -11,7 +9,7 @@ AsyncLogger::AsyncLogger(std::string logFileName_, int flushInterval)
     : flushInterval_(flushInterval),
       running_(false),
       basename_(logFileName_),
-      thread_(&AsyncLogger::threadFunc, this),
+      thread_(std::bind(&AsyncLogger::threadFunc, this)),
       currentBuffer_(new Buffer),
       nextBuffer_(new Buffer),
       buffers_()
@@ -43,7 +41,6 @@ void AsyncLogger::append(const char *logline, int len)
 void AsyncLogger::threadFunc()
 {
   assert(running_ == true);
-  latch_.countDown();
   LogFile output(basename_);
   BufferPtr newBuffer1(new Buffer);
   BufferPtr newBuffer2(new Buffer);
@@ -58,10 +55,10 @@ void AsyncLogger::threadFunc()
     assert(buffersToWrite.empty());
 
     {
-      MutexLockGuard lock(mutex_);
+      std::unique_lock<std::mutex> lock(mutex_);
       if (buffers_.empty()) // unusual usage!
       {
-        cond_.waitForSeconds(flushInterval_);
+        cond_.wait_for(lock, std::chrono::seconds(flushInterval_));
       }
       buffers_.push_back(currentBuffer_);
       currentBuffer_.reset();

@@ -4,32 +4,63 @@
 #include <mutex>
 #include <condition_variable>
 #include <functional>
-//#include <iostream>
+#include <atomic>
+
+class Launcher
+{
+public:
+    Launcher(): is_launch_(false){}
+
+    void setup() {is_launch_.exchange(true);}
+    void waitForLaunch(){while(!is_launch_){}}
+private:
+    std::atomic<bool> is_launch_;
+};
+
+class Exiter
+{
+public:
+    void setup()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        exit_cv_.notify_all();
+    }
+    void waitForStop()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        exit_cv_.wait(lock);
+    }
+private:
+    std::mutex mutex_;
+    std::condition_variable exit_cv_;
+};
 
 class ThreadGuard
 {
 public:
     explicit ThreadGuard(std::function<void()> func)
         : thread_(new std::thread([&](){
-//        std::cout << "thread wait start" << std::endl;
+        launcher_.setup();
         func();
-        std::unique_lock<std::mutex> lock(mutex_);
-        launched_cv_.notify_all();
+        exiter_.setup();
     }))
     {
 
     }
     ~ThreadGuard()
     {
-        std::unique_lock<std::mutex> lock(mutex_);
-        launched_cv_.wait(lock);
-//        std::cout << "thread quit" << std::endl;
+
     }
 
     void detach()
     {
         thread_->detach();
-//        std::cout << "thread detach" << std::endl;
+        launcher_.waitForLaunch();
+    }
+
+    void waitForStop()
+    {
+        exiter_.waitForStop();
     }
 
 private:
@@ -38,6 +69,6 @@ private:
 
 private:
     std::unique_ptr<std::thread> thread_;
-    std::condition_variable launched_cv_;
-    std::mutex mutex_;
+    Launcher launcher_;
+    Exiter exiter_;
 };

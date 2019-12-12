@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
-
-struct FILE;
+#include <stdio.h>
 
 class AppendFile
 {
