@@ -1,13 +1,26 @@
 #include "Logger.h"
-
+#include "AsyncLogger.h"
 #include <assert.h>
 #include <iostream>
 #include <time.h>  
 #include <sys/time.h> 
 
+static std::once_flag flag;
+static AsyncLogger *AsyncLogger_;
+
+std::string Logger::logFileName_ = "./WebServer.log";
+
+void once_init()
+{
+    AsyncLogger_ = new AsyncLogger(Logger::getLogFileName());
+    AsyncLogger_->start(); 
+}
+
 void output(const char* msg, int len)
 {
-
+    // pthread_once(&once_control_, once_init);
+    std::call_once(flag, once_init);
+    AsyncLogger_->append(msg, len);
 }
 
 Logger::Impl::Impl(const char *fileName, int line)
