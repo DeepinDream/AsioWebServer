@@ -44,11 +44,7 @@ public:
 //                exiter_.setup();
 //            }))
     {
-        thread_.reset(new std::thread([&](){
-                        launcher_.setup();
-                        func_();
-                        exiter_.setup();
-                    }));
+
     }
     ~ThreadGuard()
     {
@@ -57,6 +53,11 @@ public:
 
     void detach()
     {
+        thread_.reset(new std::thread([&]() {
+            launcher_.setup();
+            func_();
+            exiter_.setup();
+        }));
         thread_->detach();
         launcher_.wait();
     }

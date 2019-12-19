@@ -1,2 +1,2 @@
 build/*
-src/Logger/Logger
+src/Logger/build/*

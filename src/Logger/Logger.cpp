@@ -9,7 +9,7 @@
 static std::once_flag flag;
 static std::unique_ptr<AsyncLogger> AsyncLogger_;
 
-std::string Logger::logFileName_ = "WebServer.log";
+std::string Logger::logFileName_ = "./WebServer.log";
 
 void once_init()
 {

@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include "../ThreadGuard.h"
 using namespace std;
 
 void threadFunc()
@@ -47,8 +48,8 @@ void stressing_single_thread()
 
 void stressing_multi_threads(int threadNum = 4)
 {
-    // // threadNum * 100000 lines
-    // cout << "----------stressing test multi thread-----------" << endl;
+    // threadNum * 100000 lines
+    cout << "----------stressing test multi thread-----------" << endl;
     // vector<shared_ptr<Thread>> vsp;
     // for (int i = 0; i < threadNum; ++i)
     // {
@@ -59,6 +60,19 @@ void stressing_multi_threads(int threadNum = 4)
     // {
     //     vsp[i]->start();
     // }
+    std::vector<ThreadGuard*> vsp;
+    for(int i = 0; i < threadNum; i++){
+
+        vsp.push_back(new ThreadGuard(threadFunc));
+    }
+    for (int i = 0; i < threadNum; ++i)
+    {
+        vsp[i]->detach();
+    }
+    for (int i = 0; i < threadNum; ++i)
+    {
+        vsp[i]->waitForStop();
+    }
     // sleep(3);
 }
 
@@ -74,15 +88,15 @@ int main()
 {
     // 共500014行
     type_test();
-    // sleep(3);
+    sleep(3);
 
-    // stressing_single_thread();
-    // sleep(3);
+    stressing_single_thread();
+    sleep(3);
 
-    // other();
-    // sleep(3);
+    other();
+    sleep(3);
 
-    // stressing_multi_threads();
-    // sleep(3);
+    stressing_multi_threads();
+    sleep(3);
     return 0;
 }
