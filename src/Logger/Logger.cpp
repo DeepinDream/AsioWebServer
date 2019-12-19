@@ -5,15 +5,16 @@
 #include <time.h>  
 #include <sys/time.h> 
 #include <mutex>
+#include "AsyncLogger2.h"
 
 static std::once_flag flag;
-static std::unique_ptr<AsyncLogger> AsyncLogger_;
+static std::unique_ptr<AsyncLogger2> AsyncLogger_;
 
 std::string Logger::logFileName_ = "./WebServer.log";
 
 void once_init()
 {
-    AsyncLogger_.reset(new AsyncLogger(Logger::getLogFileName()));
+    AsyncLogger_.reset(new AsyncLogger2(Logger::getLogFileName()));
     AsyncLogger_->start(); 
 }
 

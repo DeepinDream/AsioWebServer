@@ -115,6 +115,11 @@ public:
         return area_cache_.buffers_.empty();
     }
 
+    void swap()
+    {
+        area_cache_.swap(area_writer_);
+    }
+
     void flush(AppendFunc appendFunc, FlushFunc flushFunc)
     {
         area_writer_.flush(appendFunc, flushFunc);

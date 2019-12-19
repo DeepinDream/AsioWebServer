@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 set(LIB_SRC
     AsyncLogger.cpp
+    AsyncLogger2.cpp
     FileUtil.cpp
     LogFile.cpp
     Logger.cpp
