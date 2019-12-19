@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.10)
+
 set(LIB_SRC
     AsyncLogger.cpp
     FileUtil.cpp
@@ -7,6 +9,8 @@ set(LIB_SRC
 )
 
 add_library(libLogger ${LIB_SRC})
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 set_target_properties(libLogger PROPERTIES OUTPUT_NAME "Logger")
 

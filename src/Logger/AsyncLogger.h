@@ -14,25 +14,12 @@ class AsyncLogger
 {
 public:
   AsyncLogger(const std::string basename, int flushInterval = 2);
-  ~AsyncLogger()
-  {
-    if (running_)
-      stop();
-  }
+  ~AsyncLogger();
   void append(const char *logline, int len);
 
-  void start()
-  {
-    running_ = true;
-    thread_.detach();
-  }
+  void start();
 
-  void stop()
-  {
-    running_ = false;
-    cond_.notify_all();
-    thread_.waitForStop();
-  }
+  void stop();
 
 private:
   AsyncLogger(const AsyncLogger &) = delete;
@@ -47,7 +34,8 @@ private:
   const int flushInterval_;
   std::atomic<bool> running_;
   std::string basename_;
-  ThreadGuard thread_;
+//  ThreadGuard thread_;
+  std::unique_ptr<ThreadGuard> thread_;
   std::mutex mutex_;
   std::condition_variable cond_;
   BufferPtr currentBuffer_;

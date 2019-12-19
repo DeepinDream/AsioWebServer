@@ -9,43 +9,46 @@
 class Launcher
 {
 public:
-    Launcher(): is_launch_(false){}
+    Launcher(): is_launched_(false){}
 
-    void setup() {is_launch_.exchange(true);}
-    void waitForLaunch(){while(!is_launch_){}}
+    void setup() {is_launched_.exchange(true);}
+    void wait(){while(!is_launched_){}}
 private:
-    std::atomic<bool> is_launch_;
+    std::atomic<bool> is_launched_;
 };
 
 class Exiter
 {
 public:
+    Exiter(): is_exited_(false){}
     void setup()
     {
-        std::unique_lock<std::mutex> lock(mutex_);
-        exit_cv_.notify_all();
+        is_exited_.exchange(true);
     }
     void waitForStop()
     {
-        std::unique_lock<std::mutex> lock(mutex_);
-        exit_cv_.wait(lock);
+        while(!is_exited_){}
     }
 private:
-    std::mutex mutex_;
-    std::condition_variable exit_cv_;
+    std::atomic<bool> is_exited_;
 };
 
 class ThreadGuard
 {
 public:
     explicit ThreadGuard(std::function<void()> func)
-        : thread_(new std::thread([&](){
-        launcher_.setup();
-        func();
-        exiter_.setup();
-    }))
+        : func_(func)
+//        , thread_(new std::thread([&](){
+//                launcher_.setup();
+//                func_();
+//                exiter_.setup();
+//            }))
     {
-
+        thread_.reset(new std::thread([&](){
+                        launcher_.setup();
+                        func_();
+                        exiter_.setup();
+                    }));
     }
     ~ThreadGuard()
     {
@@ -55,7 +58,7 @@ public:
     void detach()
     {
         thread_->detach();
-        launcher_.waitForLaunch();
+        launcher_.wait();
     }
 
     void waitForStop()
@@ -68,6 +71,7 @@ private:
     const ThreadGuard &operator=(const ThreadGuard &) = delete;
 
 private:
+    std::function<void()> func_;
     std::unique_ptr<std::thread> thread_;
     Launcher launcher_;
     Exiter exiter_;

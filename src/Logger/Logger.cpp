@@ -4,21 +4,21 @@
 #include <iostream>
 #include <time.h>  
 #include <sys/time.h> 
+#include <mutex>
 
 static std::once_flag flag;
-static AsyncLogger *AsyncLogger_;
+static std::unique_ptr<AsyncLogger> AsyncLogger_;
 
-std::string Logger::logFileName_ = "./WebServer.log";
+std::string Logger::logFileName_ = "WebServer.log";
 
 void once_init()
 {
-    AsyncLogger_ = new AsyncLogger(Logger::getLogFileName());
+    AsyncLogger_.reset(new AsyncLogger(Logger::getLogFileName()));
     AsyncLogger_->start(); 
 }
 
 void output(const char* msg, int len)
 {
-    // pthread_once(&once_control_, once_init);
     std::call_once(flag, once_init);
     AsyncLogger_->append(msg, len);
 }

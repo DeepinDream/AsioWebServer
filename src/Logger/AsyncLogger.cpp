@@ -1,7 +1,7 @@
 #include "AsyncLogger.h"
 #include <assert.h>
-#include <stdio.h>
-#include <unistd.h>
+// #include <stdio.h>
+// #include <unistd.h>
 #include <functional>
 #include "LogFile.h"
 
@@ -9,7 +9,7 @@ AsyncLogger::AsyncLogger(std::string logFileName_, int flushInterval)
     : flushInterval_(flushInterval),
       running_(false),
       basename_(logFileName_),
-      thread_(std::bind(&AsyncLogger::threadFunc, this)),
+//      thread_(std::bind(&AsyncLogger::threadFunc, this)),
       currentBuffer_(new Buffer),
       nextBuffer_(new Buffer),
       buffers_()
@@ -18,11 +18,18 @@ AsyncLogger::AsyncLogger(std::string logFileName_, int flushInterval)
   currentBuffer_->bzero();
   nextBuffer_->bzero();
   buffers_.reserve(16);
+  thread_.reset(new ThreadGuard(std::bind(&AsyncLogger::threadFunc, this)));
+}
+
+AsyncLogger::~AsyncLogger()
+{
+    if (running_)
+        stop();
 }
 
 void AsyncLogger::append(const char *logline, int len)
 {
-  std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
   if (currentBuffer_->avail() > len)
     currentBuffer_->append(logline, len);
   else
@@ -38,11 +45,26 @@ void AsyncLogger::append(const char *logline, int len)
   }
 }
 
+void AsyncLogger::start()
+{
+    running_ = true;
+//    thread_.detach();
+    thread_->detach();
+}
+
+void AsyncLogger::stop()
+{
+    running_ = false;
+    cond_.notify_all();
+//    thread_.waitForStop();
+    thread_->waitForStop();
+}
+
 void AsyncLogger::threadFunc()
 {
-  assert(running_ == true);
-  LogFile output(basename_);
-  BufferPtr newBuffer1(new Buffer);
+    assert(running_ == true);
+    LogFile output(basename_);
+    BufferPtr newBuffer1(new Buffer);
   BufferPtr newBuffer2(new Buffer);
   newBuffer1->bzero();
   newBuffer2->bzero();

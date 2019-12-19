@@ -4,12 +4,14 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cstdio>
 
 using namespace std;
 
 AppendFile::AppendFile(string filename) : fp_(fopen(filename.c_str(), "ae")) {
   // 用户提供缓冲区
-  setbuffer(fp_, buffer_, sizeof buffer_);
+//  setbuffer(fp_, buffer_, sizeof buffer_);
+    setvbuf(fp_, buffer_, _IOFBF, sizeof(buffer_));
 }
 
 AppendFile::~AppendFile() { fclose(fp_); }
@@ -32,5 +34,5 @@ void AppendFile::append(const char* logline, const size_t len) {
 void AppendFile::flush() { fflush(fp_); }
 
 size_t AppendFile::write(const char* logline, size_t len) {
-  return fwrite_unlocked(logline, 1, len, fp_);
+  return fwrite(logline, 1, len, fp_);
 }
