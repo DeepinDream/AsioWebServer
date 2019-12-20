@@ -11,7 +11,7 @@ using namespace std;
 
 void threadFunc()
 {
-    for (int i = 0; i < 100000; ++i)
+    for (int i = 0; i < 10000; ++i)
     {
         LOG << i;
     }
@@ -40,7 +40,7 @@ void stressing_single_thread()
 {
     // 100000 lines
     cout << "----------stressing test single thread-----------" << endl;
-    for (int i = 0; i < 100000; ++i)
+    for (int i = 0; i < 10000; ++i)
     {
         LOG << i;
     }
