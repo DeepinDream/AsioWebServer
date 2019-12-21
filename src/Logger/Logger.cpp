@@ -6,15 +6,19 @@
 #include <sys/time.h> 
 #include <mutex>
 #include "AsyncLogger2.h"
+#include "AsyncLogger.h"
 
 static std::once_flag flag;
-static std::unique_ptr<AsyncLogger2> AsyncLogger_;
+static std::unique_ptr<AsyncLogger> AsyncLogger_;
 
 std::string Logger::logFileName_ = "./WebServer.log";
+LogLevel Logger::logLevel_ = LogLevel::INFO;
+
+static char LEVEL_STR[][4] = {"[E]", "[W]", "[I]"};
 
 void once_init()
 {
-    AsyncLogger_.reset(new AsyncLogger2(Logger::getLogFileName()));
+    AsyncLogger_.reset(new AsyncLogger(Logger::getLogFileName()));
     AsyncLogger_->start(); 
 }
 
@@ -24,15 +28,17 @@ void output(const char* msg, int len)
     AsyncLogger_->append(msg, len);
 }
 
-Logger::Impl::Impl(const char *fileName, int line)
+Logger::Impl::Impl(const char *fileName, int line, LogLevel level)
   : stream_(),
     line_(line),
     basename_(fileName)
 {
+    stream_ << LEVEL_STR[static_cast<int>(level)];
     formatTime();
+    stream_ << "[" << basename_ << ':' << line_ << ']';
 }
 
-void Logger::Impl::formatTime()
+inline void Logger::Impl::formatTime()
 {
     struct timeval tv;
     time_t time;
@@ -40,17 +46,17 @@ void Logger::Impl::formatTime()
     gettimeofday (&tv, NULL);
     time = tv.tv_sec;
     struct tm* p_time = localtime(&time);   
-    strftime(str_t, 26, "%Y-%m-%d %H:%M:%S\n", p_time);
+    strftime(str_t, 26, "[%Y-%m-%d %H:%M:%S]", p_time);
     stream_ << str_t;
 }
 
-Logger::Logger(const char *fileName, int line)
-  : impl_(fileName, line)
+Logger::Logger(const char *fileName, int line, LogLevel level)
+  : impl_(fileName, line, level)
 { }
 
 Logger::~Logger()
 {
-    impl_.stream_ << " -- " << impl_.basename_ << ':' << impl_.line_ << '\n';
+    impl_.stream_ << '\n';
     const LogStream::Buffer& buf(impl_.stream_.buffer());
     output(buf.data(), buf.length());
 }

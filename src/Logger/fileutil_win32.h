@@ -14,7 +14,7 @@ public:
 private:
     AppendFile(const AppendFile &) = delete;
     const AppendFile &operator=(const AppendFile &) = delete;
-//    size_t write(const char *logline, size_t len);
+    std::streamoff write(const char *logline, std::streamsize len);
 
     std::ofstream fs_;
     char buffer_[64 * 1024];

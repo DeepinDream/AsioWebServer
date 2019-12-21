@@ -2,7 +2,8 @@
 #include <memory>
 #include <string>
 #include <mutex>
-#include "FileUtil.h"
+// #include "FileUtil.h"
+#include "fileutil_win32.h"
 
 // TODO 提供自动归档功能
 class LogFile
