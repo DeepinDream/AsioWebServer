@@ -31,3 +31,7 @@ include_directories(googletest-master/googlemock/include)
 include_directories(googletest-master/googletest/include)
 target_link_libraries(testapp gmock)
 target_link_libraries(testapp gtest)
+
+# add logger
+include_directories(${ATP_ROOT}/common)
+target_link_libraries(testapp libLogger)

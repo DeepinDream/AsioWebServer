@@ -27,3 +27,7 @@ add_definitions(-DASIO_STANDALONE)
 # add ssl
 find_package(OpenSSL REQUIRED)
 target_link_libraries(app OpenSSL::SSL)
+
+# add logger
+include_directories(${ATP_ROOT}/common)
+target_link_libraries(app libLogger)

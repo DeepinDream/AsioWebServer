@@ -11,3 +11,5 @@ message("ATP_ROOT: ${ATP_ROOT}")
 add_subdirectory(src)
 
 add_subdirectory(test)
+
+add_subdirectory(common)
