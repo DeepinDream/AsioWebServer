@@ -37,6 +37,10 @@ void GetInfo(ostream &response, WebRequest &request)
 	// 获得 content_stream 的长度(使用 content.tellp() 获得)
 	content_stream.seekp(0, ios::end);
 
+	for(int i = 0; i < 100000; i++){
+		std::cout << i << std::endl;
+	}
+
 	HttpPrint(response, content_stream);
 }
 
