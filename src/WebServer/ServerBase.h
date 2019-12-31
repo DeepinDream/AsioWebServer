@@ -1,9 +1,9 @@
 #pragma once
 
 #include "HttpParser.h"
-#include "WebRequest.h"
-
+#include "IOServicePool.h"
 #include "UseAsio.h"
+#include "WebRequest.h"
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -15,8 +15,10 @@ class ServerBase {
   public:
     // 构造服务器, 初始化端口, 默认使用一个线程
     explicit ServerBase(unsigned short port, size_t num_threads = 1)
-        : endpoint(boost::asio::ip::tcp::v4(), port),
-          acceptor(m_io_service, endpoint), num_threads(num_threads)
+        : m_io_service(num_threads)
+        , endpoint(boost::asio::ip::tcp::v4(), port)
+        , acceptor(m_io_service.getIOService(), endpoint)
+    // , strand_(m_io_service.getIOService())
     {
     }
 
@@ -39,18 +41,7 @@ class ServerBase {
         // 调用 socket 的连接方式，还需要子类来实现 accept() 逻辑
         accept();
 
-        // 如果 num_threads>1, 那么 m_io_service.run()
-        // 将运行 (num_threads-1) 线程成为线程池
-        for (size_t c = 1; c < num_threads; c++) {
-            threads.emplace_back([this]() { m_io_service.run(); });
-        }
-
-        // 主线程
         m_io_service.run();
-
-        // 等待其他线程，如果有的话, 就等待这些线程的结束
-        for (auto& t : threads)
-            t.join();
     }
 
     ResourceType resource;
@@ -122,11 +113,11 @@ class ServerBase {
 
     // 应答
     void respond(std::shared_ptr<socket_type> socket,
-                 std::shared_ptr<WebRequest>  request) const
+                 std::shared_ptr<WebRequest> request) const
     {
         // 对请求路径和方法进行匹配查找，并生成响应
         for (auto res_it : all_resources) {
-            std::regex  e(res_it->first);
+            std::regex e(res_it->first);
             std::smatch sm_res;
             if (std::regex_match(request->path, sm_res, e)) {
                 if (res_it->second.count(request->method) > 0) {
@@ -157,16 +148,17 @@ class ServerBase {
 
     // asio 库中的 io_service 是调度器，所有的异步 IO 事件都要通过它来分发处理
     // 换句话说, 需要 IO 的对象的构造函数，都需要传入一个 io_service 对象
-    boost::asio::io_service m_io_service;
+    IOServicePool m_io_service;
     // IP 地址、端口号、协议版本构成一个 endpoint，并通过这个 endpoint
     // 在服务端生成 tcp::acceptor 对象，并在指定端口上等待连接
     boost::asio::ip::tcp::endpoint endpoint;
     // 所以，一个 acceptor 对象的构造都需要 io_service 和 endpoint 两个参数
     boost::asio::ip::tcp::acceptor acceptor;
 
-    // 服务器线程
-    size_t                   num_threads;
-    std::vector<std::thread> threads;
+    // // 如果多个 event handler 通过同一个 strand 对象分发 (dispatch)，那么这些
+    // // event handler 就会保证顺序地执行。
+    // // 使用 strand，所以不需要使用互斥锁保证同步了
+    // boost::asio::io_service::strand strand_;
 
     // 所有的资源及默认资源都会在 vector 尾部添加, 并在 start() 中创建
     std::vector<ResourceType::iterator> all_resources;

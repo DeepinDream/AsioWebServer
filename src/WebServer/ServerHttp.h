@@ -20,7 +20,7 @@ class Server<HTTP> : public ServerBase<HTTP> {
         // 为当前连接创建一个新的 socket
         // Shared_ptr 用于传递临时对象给匿名函数
         // socket 会被推导为 std::shared_ptr<HTTP> 类型
-        auto socket = std::make_shared<HTTP>(m_io_service);
+        auto socket = std::make_shared<HTTP>(m_io_service.getIOService());
 
         acceptor.async_accept(
             *socket, [this, socket](const boost::system::error_code& ec) {

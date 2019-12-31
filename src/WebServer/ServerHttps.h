@@ -20,11 +20,11 @@ class Server<HTTPS> : public ServerBase<HTTPS> {
     }
 
     template <typename F>
-    void init_ssl_context(const bool         ssl_enable_v3,
+    void init_ssl_context(const bool ssl_enable_v3,
                           const std::string& cert_file,
                           const std::string& private_key_file,
                           const std::string& tmp_dh_file = std::string(),
-                          F&&                f           = nullptr)
+                          F&& f = nullptr)
     {
         unsigned long ssl_options =
             boost::asio::ssl::context::default_workarounds |
@@ -49,7 +49,7 @@ class Server<HTTPS> : public ServerBase<HTTPS> {
   private:
     // 和 HTTP 服务器相比，需要多定义一个 ssl context 对象
     boost::asio::ssl::context context;
-	
+
     template <typename F>
     typename std::enable_if<!std::is_null_pointer<F>::value>::type
     set_password_callback(F&& f)
@@ -72,7 +72,7 @@ class Server<HTTPS> : public ServerBase<HTTPS> {
         // 为当前连接创建一个新的 socket
         // Shared_ptr 用于传递临时对象给匿名函数
         // socket 类型会被推导为: std::shared_ptr<HTTPS>
-        auto socket = std::make_shared<HTTPS>(m_io_service, context);
+        auto socket = std::make_shared<HTTPS>(m_io_service.getIOService(), context);
 
         acceptor.async_accept(
             (*socket).lowest_layer(),
