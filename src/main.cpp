@@ -12,6 +12,7 @@ using namespace AsioWeb;
 int main(int, char**)
 {
     std::cout << "Hello, world!\n";
+    Logger::setCoutEnabled(true);
     LOG_INFO << "Hello world!";
 
     // // HTTP 服务运行在 12345 端口，并启用四个线程

@@ -62,8 +62,6 @@
         "set": "cpp",
         "iomanip": "cpp"
     },
-    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
-    "C_Cpp.configurationWarnings": "Disabled",
     "editor.formatOnSave": true,
     "clang-format.executable": "${workspaceRoot}/.clang-format"
 }
