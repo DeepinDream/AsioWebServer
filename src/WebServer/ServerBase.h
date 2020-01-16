@@ -2,6 +2,7 @@
 
 #include "HttpParser.h"
 #include "IOServicePool.h"
+#include "Response.h"
 #include "UseAsio.h"
 #include "WebRequest.h"
 #include <iostream>
@@ -124,15 +125,14 @@ class ServerBase {
                     request->path_match = move(sm_res);
 
                     // 会被推导为 std::shared_ptr<boost::asio::streambuf>
-                    auto write_buffer =
-                        std::make_shared<boost::asio::streambuf>();
-                    std::ostream response(write_buffer.get());
+                    Response response;
                     res_it->second[request->method](response, *request);
 
                     // 在 lambda 中捕获 write_buffer 使其不会再 async_write
                     // 完成前被销毁
+                    auto write_buffer = response.to_buffers();
                     boost::asio::async_write(
-                        *socket, *write_buffer,
+                        *socket, write_buffer,
                         [this, socket, request,
                          write_buffer](const boost::system::error_code& ec,
                                        size_t bytes_transferred) {

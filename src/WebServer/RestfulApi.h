@@ -1,30 +1,21 @@
 #pragma once
+#include "IResetful.h"
 #include "ServerBase.h"
 #include "WebRequest.h"
-#include "IResetful.h"
 #include <memory>
 
-namespace AsioWeb
-{
+namespace AsioWeb {
 // socket_type 为 HTTP or HTTPS
 // template <typename socket_type>
-class RestfulApi: IResetful
-{
-public:
-    using ApiCallback = std::function<void(ostream& response, WebRequest& request)>;
-    // using ServerType = ServerBase<socket_type>;
-    // using ServerPtr = typename std::shared_ptr<ServerType>;
-    // explicit RestfulApi(ServerPtr server)    
-    //  : m_server(server)
-    // {
+class RestfulApi : IResetful {
+  public:
+    using ApiCallback = RequestFunc;
 
-    // }
     explicit RestfulApi(ResourceType& resource)
-    : m_resource(resource)
+        : m_resource(resource)
     {
-        
     }
-    
+
     virtual void Post(const std::string& url, ApiCallback func) override
     {
         // m_server->resource[url]["POST"] = func;
@@ -52,8 +43,8 @@ public:
         m_resource[url]["DELETE"] = func;
     }
 
-private:
+  private:
     // ServerPtr m_server;
     ResourceType& m_resource;
 };
-} // namespace AsioWeb
+}  // namespace AsioWeb
