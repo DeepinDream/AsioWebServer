@@ -20,8 +20,6 @@ int main(int, char**)
 
     // HTTPS 服务运行在 12345 端口，并启用四个线程
     // auto serverPtr = std::make_shared<Server<HTTPS>>(12345, 4);
-    // auto serverPtr = std::make_shared<Server<HTTPS>>(
-    //     12345, 4, "resource/ssl/server.crt", "resource/ssl/server.key");
     // serverPtr->init_ssl_context(
     //     true, "resource/ssl/server_2.crt", "resource/ssl/server_2.key",
     //     "resource/ssl/dh1024.pem",

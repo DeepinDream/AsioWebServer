@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ChunkedData.h"
 #include "UseAsio.h"
 #include "mime_types.hpp"
 #include "response_cv.hpp"
@@ -11,7 +12,7 @@
 
 namespace AsioWeb {
 
-class Response {
+class Response : public std::enable_shared_from_this<Response> {
   public:
     std::vector<boost::asio::const_buffer>
     get_response_buffer(std::string&& body)
@@ -24,7 +25,6 @@ class Response {
     std::vector<boost::asio::const_buffer> to_buffers()
     {
         std::vector<boost::asio::const_buffer> buffers;
-        add_header("Host", "AsioWeb");
 
         buffers.reserve(headers_.size() * 4 + 5);
         buffers.emplace_back(to_buffer(status_));
@@ -64,6 +64,11 @@ class Response {
         content_ = std::move(content);
     }
 
+    void set_chunked_content(std::string&& content)
+    {
+        content_ = std::move(content);
+    }
+
     void set_status_and_content(status_type status)
     {
         status_ = status;
@@ -86,9 +91,15 @@ class Response {
         set_content(std::move(content));
     }
 
+    ChunkedData& chunkedData()
+    {
+        return chunked_data_;
+    }
+
   private:
     std::unordered_map<std::string, std::string> headers_;
     std::string content_;
     status_type status_ = status_type::init;
+    ChunkedData chunked_data_;
 };
 }  // namespace AsioWeb

@@ -73,8 +73,6 @@ void GetDefault(Response& response, WebRequest& request)
 {
     string filename = getFilePath(request.path_match[1]);
 
-    string path = request.path_match[1];
-
     ifstream ifs;
     // 简单的平台无关的文件或目录检查
     if (filename.find('.') == string::npos) {
@@ -97,4 +95,24 @@ void GetDefault(Response& response, WebRequest& request)
         string content = "Could not open file " + filename;
         response.set_status_and_content(status_type::ok, std::move(content));
     }
+}
+
+void DownloadFile(Response& response, WebRequest& request)
+{
+    auto chunk = response.chunkedData();
+
+    string filename = getFilePath(request.path_match[1]);
+
+    ifstream ifs;
+    ifs.open(filename, ifstream::in);
+    if (!ifs) {
+        return;
+    }
+
+    chunk.setEnabled(true);
+    // switch (chunk.getProcState()){
+
+    // }
+
+    ifs.close();
 }

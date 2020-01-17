@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Connection.h"
 #include "ServerBase.h"
 #include "UseAsio.h"
 #include <asio/ssl.hpp>
@@ -72,11 +73,13 @@ class Server<HTTPS> : public ServerBase<HTTPS> {
         // 为当前连接创建一个新的 socket
         // Shared_ptr 用于传递临时对象给匿名函数
         // socket 类型会被推导为: std::shared_ptr<HTTPS>
-        auto socket = std::make_shared<HTTPS>(m_io_service.getIOService(), context);
-
+        auto socket =
+            std::make_shared<HTTPS>(m_io_service.getIOService(), context);
+        auto connection =
+            std::make_shared<Connection<HTTPS>>(socket, all_resources);
         acceptor.async_accept(
             (*socket).lowest_layer(),
-            [this, socket](const boost::system::error_code& ec) {
+            [this, socket, connection](const boost::system::error_code& ec) {
                 // 立即启动并接受一个新连接
                 accept();
 
@@ -84,9 +87,10 @@ class Server<HTTPS> : public ServerBase<HTTPS> {
                 if (!ec) {
                     (*socket).async_handshake(
                         boost::asio::ssl::stream_base::server,
-                        [this, socket](const boost::system::error_code& ec) {
+                        [this,
+                         connection](const boost::system::error_code& ec) {
                             if (!ec)
-                                process_request_and_respond(socket);
+                                connection->process_request_and_respond();
                         });
                 }
             });

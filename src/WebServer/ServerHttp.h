@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Connection.h"
 #include "ServerBase.h"
 #include "UseAsio.h"
 
@@ -21,14 +22,14 @@ class Server<HTTP> : public ServerBase<HTTP> {
         // Shared_ptr 用于传递临时对象给匿名函数
         // socket 会被推导为 std::shared_ptr<HTTP> 类型
         auto socket = std::make_shared<HTTP>(m_io_service.getIOService());
-
+        auto connection = std::make_shared<Connection<HTTP>>(socket, all_resources);
         acceptor.async_accept(
-            *socket, [this, socket](const boost::system::error_code& ec) {
+            *socket, [this, connection](const boost::system::error_code& ec) {
                 // 立即启动并接受一个连接
                 accept();
                 // 如果出现错误
                 if (!ec)
-                    process_request_and_respond(socket);
+                    connection->process_request_and_respond();
             });
     }
 };
