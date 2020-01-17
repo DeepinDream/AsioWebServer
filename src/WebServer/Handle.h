@@ -97,22 +97,59 @@ void GetDefault(Response& response, WebRequest& request)
     }
 }
 
+inline std::string to_hex_string(std::size_t value)
+{
+    std::ostringstream stream;
+    stream << std::hex << value;
+    return stream.str();
+}
+
 void DownloadFile(Response& response, WebRequest& request)
 {
-    auto chunk = response.chunkedData();
+    auto& chunk = response.chunkedData();
 
-    string filename = getFilePath(request.path_match[1]);
+    // string filename = getFilePath(request.path_match[1]);
 
-    ifstream ifs;
-    ifs.open(filename, ifstream::in);
-    if (!ifs) {
-        return;
+    // ifstream ifs;
+    // ifs.open(filename, ifstream::in);
+    // if (!ifs) {
+    //     return;
+    // }
+    static int count = 0;
+    switch (chunk.getProcState()) {
+        case DataProcState::DATA_BEGIN:
+            response.set_status_and_content(status_type::ok, "",
+                                            res_content_type::string);
+            response.add_header("Transfer-Encoding", "chunked");
+            response.add_header("Connection", "keep-alive");
+            response.add_header("Accept-Ranges", "bytes");
+            chunk.setEnabled(true);
+            chunk.setProcState(DataProcState::DATA_CONTINUE);
+            break;
+        case DataProcState::DATA_CONTINUE:
+            if (count++ < 1) {
+                std::string str =
+                    "chunked data test: " + std::to_string(count) + "\r\n";
+                std::cout << str;
+                std::string str_size = to_hex_string(str.size()) + "\r\n";
+                response.set_content(std::move(str_size + str));
+                // response.set_content(std::move(str));
+            }
+            else {
+                count = 0;
+                response.clear();
+                std::string str = "0\r\n\r\n";
+                std::cout << str;
+                response.set_content(std::move(str));
+                chunk.setProcState(DataProcState::DATA_END);
+            }
+            break;
+        default:
+            count = 0;
+            chunk.setEnabled(false);
+            chunk.setProcState(DataProcState::DATA_BEGIN);
+            break;
     }
 
-    chunk.setEnabled(true);
-    // switch (chunk.getProcState()){
-
-    // }
-
-    ifs.close();
+    // ifs.close();
 }

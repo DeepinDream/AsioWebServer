@@ -26,16 +26,22 @@ class Response : public std::enable_shared_from_this<Response> {
     {
         std::vector<boost::asio::const_buffer> buffers;
 
-        buffers.reserve(headers_.size() * 4 + 5);
-        buffers.emplace_back(to_buffer(status_));
-        for (auto const& h : headers_) {
-            buffers.emplace_back(boost::asio::buffer(h.first));
-            buffers.emplace_back(boost::asio::buffer(name_value_separator));
-            buffers.emplace_back(boost::asio::buffer(h.second));
-            buffers.emplace_back(boost::asio::buffer(crlf));
+        if (!chunked_data_.getEnabled()) {
+            add_header("Content-Length", std::to_string(content_.size()));
         }
 
-        buffers.push_back(boost::asio::buffer(crlf));
+        if (!chunked_data_.getEnabled() || !headers_.empty()) {
+            buffers.reserve(headers_.size() * 4 + 5);
+            buffers.emplace_back(to_buffer(status_));
+            for (auto const& h : headers_) {
+                buffers.emplace_back(boost::asio::buffer(h.first));
+                buffers.emplace_back(boost::asio::buffer(name_value_separator));
+                buffers.emplace_back(boost::asio::buffer(h.second));
+                buffers.emplace_back(boost::asio::buffer(crlf));
+            }
+
+            buffers.push_back(boost::asio::buffer(crlf));
+        }
 
         buffers.emplace_back(
             boost::asio::buffer(content_.data(), content_.size()));
@@ -46,6 +52,12 @@ class Response : public std::enable_shared_from_this<Response> {
     void add_header(std::string&& key, std::string&& value)
     {
         headers_[std::move(key)] = std::move(value);
+    }
+
+    void clear()
+    {
+        headers_.clear();
+        content_.clear();
     }
 
     void set_status(status_type status)
@@ -59,12 +71,6 @@ class Response : public std::enable_shared_from_this<Response> {
     }
 
     void set_content(std::string&& content)
-    {
-        add_header("Content-Length", std::to_string(content.size()));
-        content_ = std::move(content);
-    }
-
-    void set_chunked_content(std::string&& content)
     {
         content_ = std::move(content);
     }
