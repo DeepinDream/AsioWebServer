@@ -12,6 +12,13 @@
 
 namespace AsioWeb {
 
+inline std::string to_hex_string(std::size_t value)
+{
+    std::ostringstream stream;
+    stream << std::hex << value;
+    return stream.str();
+}
+
 class Response : public std::enable_shared_from_this<Response> {
   public:
     std::vector<boost::asio::const_buffer>
@@ -26,25 +33,80 @@ class Response : public std::enable_shared_from_this<Response> {
     {
         std::vector<boost::asio::const_buffer> buffers;
 
-        if (!chunked_data_.getEnabled()) {
-            add_header("Content-Length", std::to_string(content_.size()));
+        add_header("Content-Length", std::to_string(content_.size()));
+
+        buffers.reserve(headers_.size() * 4 + 5);
+        buffers.emplace_back(to_buffer(status_));
+        for (auto const& h : headers_) {
+            buffers.emplace_back(boost::asio::buffer(h.first));
+            buffers.emplace_back(boost::asio::buffer(name_value_separator));
+            buffers.emplace_back(boost::asio::buffer(h.second));
+            buffers.emplace_back(boost::asio::buffer(crlf));
         }
 
-        if (!chunked_data_.getEnabled() || !headers_.empty()) {
-            buffers.reserve(headers_.size() * 4 + 5);
-            buffers.emplace_back(to_buffer(status_));
-            for (auto const& h : headers_) {
-                buffers.emplace_back(boost::asio::buffer(h.first));
-                buffers.emplace_back(boost::asio::buffer(name_value_separator));
-                buffers.emplace_back(boost::asio::buffer(h.second));
-                buffers.emplace_back(boost::asio::buffer(crlf));
-            }
-
-            buffers.push_back(boost::asio::buffer(crlf));
-        }
+        buffers.push_back(boost::asio::buffer(crlf));
 
         buffers.emplace_back(
             boost::asio::buffer(content_.data(), content_.size()));
+        return buffers;
+    }
+
+    std::vector<boost::asio::const_buffer> to_chunked_buffers()
+    {
+        if (chunked_data_.getProcState() == DataProcState::DATA_BEGIN) {
+            chunked_data_.setProcState(DataProcState::DATA_CONTINUE);
+            return to_chunked_headers();
+        }
+
+        if (chunked_data_.getProcState() == DataProcState::DATA_CONTINUE) {
+            if (chunked_data_.getFinished()) {
+                chunked_data_.setProcState(DataProcState::DATA_END);
+            }
+            return to_chunked_body(content_.c_str(), content_.size(),
+                                      chunked_data_.getFinished());
+        }
+
+        return std::vector<boost::asio::const_buffer>();
+    }
+
+    std::vector<boost::asio::const_buffer> to_chunked_headers()
+    {
+        std::vector<boost::asio::const_buffer> buffers;
+        add_header("Transfer-Encoding", "chunked");
+        buffers.reserve(headers_.size() * 4 + 5);
+        buffers.emplace_back(to_buffer(status_));
+        for (auto const& h : headers_) {
+            buffers.emplace_back(boost::asio::buffer(h.first));
+            buffers.emplace_back(boost::asio::buffer(name_value_separator));
+            buffers.emplace_back(boost::asio::buffer(h.second));
+            buffers.emplace_back(boost::asio::buffer(crlf));
+        }
+
+        buffers.push_back(boost::asio::buffer(crlf));
+        return buffers;
+    }
+
+    std::vector<boost::asio::const_buffer>
+    to_chunked_body(const char* chunk_data, size_t length, bool eof)
+    {
+        std::vector<boost::asio::const_buffer> buffers;
+
+        if (length > 0) {
+            // convert bytes transferred count to a hex string.
+            auto chunk_size = to_hex_string(length);
+
+            // Construct chunk based on rfc2616 section 3.6.1
+            buffers.push_back(boost::asio::buffer(chunk_size));
+            buffers.push_back(boost::asio::buffer(crlf));
+            buffers.push_back(boost::asio::buffer(chunk_data, length));
+            buffers.push_back(boost::asio::buffer(crlf));
+        }
+
+        // append last-chunk
+        if (eof) {
+            buffers.push_back(boost::asio::buffer(last_chunk));
+            buffers.push_back(boost::asio::buffer(crlf));
+        }
 
         return buffers;
     }

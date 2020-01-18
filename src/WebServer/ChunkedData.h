@@ -19,6 +19,7 @@ class ChunkedData {
         , seek_pos_(0)
         , length_(0)
         , state_(DataProcState::DATA_BEGIN)
+        , finished_(false)
     {
     }
 
@@ -58,10 +59,20 @@ class ChunkedData {
         return state_;
     }
 
+    void setFinished(const bool finished)
+    {
+        finished_ = finished;
+    }
+    bool getFinished()
+    {
+        return finished_;
+    }
+
   private:
     bool enabled_;
     unsigned int seek_pos_;
     unsigned int length_;
     DataProcState state_;
+    bool finished_;
 };
 }  // namespace AsioWeb

@@ -105,10 +105,10 @@ class Connection
 
         // 在 lambda 中捕获 write_buffer 使其不会再 async_write
         // 完成前被销毁
-        auto write_buffer = res.to_buffers();
+
         auto self = this->shared_from_this();
-        if (res.chunkedData().getEnabled() &&
-            res.chunkedData().getProcState() <= DataProcState::DATA_END) {
+        if (res.chunkedData().getEnabled()) {
+            auto write_buffer = res.to_chunked_buffers();
             boost::asio::async_write(
                 *socket_, write_buffer,
                 [&, self, this](const boost::system::error_code& ec,
@@ -116,7 +116,8 @@ class Connection
                     // HTTP 持久连接(HTTP 1.1), 递归调用
 
                     if (!ec && stof(request.http_version) > 1.05) {
-                        if (!res.chunkedData().getEnabled()) {
+                        if (res.chunkedData().getProcState() >=
+                            DataProcState::DATA_END) {
                             process_request_and_respond();
                         }
                         else {
@@ -126,6 +127,7 @@ class Connection
                 });
         }
         else {
+            auto write_buffer = res.to_buffers();
             boost::asio::async_write(
                 *socket_, write_buffer,
                 [this, self, request,

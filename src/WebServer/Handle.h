@@ -120,31 +120,23 @@ void DownloadFile(Response& response, WebRequest& request)
         case DataProcState::DATA_BEGIN:
             response.set_status_and_content(status_type::ok, "",
                                             res_content_type::string);
-            response.add_header("Transfer-Encoding", "chunked");
-            response.add_header("Connection", "keep-alive");
-            response.add_header("Accept-Ranges", "bytes");
+            // response.add_header("Transfer-Encoding", "chunked");
+            // response.add_header("Connection", "keep-alive");
+            // response.add_header("Accept-Ranges", "bytes");
             chunk.setEnabled(true);
-            chunk.setProcState(DataProcState::DATA_CONTINUE);
+            // chunk.setProcState(DataProcState::DATA_CONTINUE);
             break;
         case DataProcState::DATA_CONTINUE:
-            if (count++ < 1) {
-                std::string str =
-                    "chunked data test: " + std::to_string(count) + "\r\n";
-                std::cout << str;
-                std::string str_size = to_hex_string(str.size()) + "\r\n";
-                response.set_content(std::move(str_size + str));
-                // response.set_content(std::move(str));
-            }
-            else {
-                count = 0;
-                response.clear();
-                std::string str = "0\r\n\r\n";
-                std::cout << str;
-                response.set_content(std::move(str));
-                chunk.setProcState(DataProcState::DATA_END);
-            }
+            {response.clear();
+            std::string str = "chunked data test: " + std::to_string(count);
+            std::cout << str;
+            chunk.setFinished(true);
+            response.set_content(std::move(str));}
             break;
-        default:
+        case DataProcState::DATA_END:
+        case DataProcState::DATA_ALL_END:
+        case DataProcState::DATA_CLOSE:
+        case DataProcState::DATA_ERR:
             count = 0;
             chunk.setEnabled(false);
             chunk.setProcState(DataProcState::DATA_BEGIN);
