@@ -120,19 +120,22 @@ void DownloadFile(Response& response, WebRequest& request)
         case DataProcState::DATA_BEGIN:
             response.set_status_and_content(status_type::ok, "",
                                             res_content_type::string);
-            // response.add_header("Transfer-Encoding", "chunked");
-            // response.add_header("Connection", "keep-alive");
-            // response.add_header("Accept-Ranges", "bytes");
             chunk.setEnabled(true);
-            // chunk.setProcState(DataProcState::DATA_CONTINUE);
             break;
-        case DataProcState::DATA_CONTINUE:
-            {response.clear();
-            std::string str = "chunked data test: " + std::to_string(count);
-            std::cout << str;
-            chunk.setFinished(true);
-            response.set_content(std::move(str));}
-            break;
+        case DataProcState::DATA_CONTINUE: {
+            response.clear();
+            if (count < 4) {
+                std::string str = "chunked data test: " + std::to_string(count);
+                std::cout << str << std::endl;
+                response.set_content(std::move(str));
+                count++;
+            }
+            else {
+                chunk.setFinished(true);
+                count = 0;
+            }
+
+        } break;
         case DataProcState::DATA_END:
         case DataProcState::DATA_ALL_END:
         case DataProcState::DATA_CLOSE:

@@ -74,6 +74,9 @@ class Connection
                         this->respond(response_, request_);
                     }
                 }
+                else {
+                    std::cout << "server::handle_accept: " << ec.message();
+                }
             });
     }
 
@@ -106,13 +109,13 @@ class Connection
         // 在 lambda 中捕获 write_buffer 使其不会再 async_write
         // 完成前被销毁
 
-        auto self = this->shared_from_this();
         if (res.chunkedData().getEnabled()) {
             auto write_buffer = res.to_chunked_buffers();
             boost::asio::async_write(
                 *socket_, write_buffer,
-                [&, self, this](const boost::system::error_code& ec,
-                                size_t bytes_transferred) {
+                [&, self = this->shared_from_this(),
+                 this](const boost::system::error_code& ec,
+                       size_t bytes_transferred) {
                     // HTTP 持久连接(HTTP 1.1), 递归调用
 
                     if (!ec && stof(request.http_version) > 1.05) {
@@ -121,8 +124,13 @@ class Connection
                             process_request_and_respond();
                         }
                         else {
-                            self->Handler(res, request);
+                            self->Handler(response_, request_);
                         }
+                    }
+
+                    if (ec) {
+                        std::cout << "server::handle_accept: " << ec.message()
+                                  << std::endl;
                     }
                 });
         }
@@ -130,7 +138,7 @@ class Connection
             auto write_buffer = res.to_buffers();
             boost::asio::async_write(
                 *socket_, write_buffer,
-                [this, self, request,
+                [this, self = this->shared_from_this(), request,
                  write_buffer](const boost::system::error_code& ec,
                                size_t bytes_transferred) {
                     // HTTP 持久连接(HTTP 1.1), 递归调用

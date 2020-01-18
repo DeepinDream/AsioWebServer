@@ -19,7 +19,7 @@ inline std::string to_hex_string(std::size_t value)
     return stream.str();
 }
 
-class Response : public std::enable_shared_from_this<Response> {
+class Response {
   public:
     std::vector<boost::asio::const_buffer>
     get_response_buffer(std::string&& body)
@@ -63,7 +63,7 @@ class Response : public std::enable_shared_from_this<Response> {
                 chunked_data_.setProcState(DataProcState::DATA_END);
             }
             return to_chunked_body(content_.c_str(), content_.size(),
-                                      chunked_data_.getFinished());
+                                   chunked_data_.getFinished());
         }
 
         return std::vector<boost::asio::const_buffer>();
@@ -73,6 +73,9 @@ class Response : public std::enable_shared_from_this<Response> {
     {
         std::vector<boost::asio::const_buffer> buffers;
         add_header("Transfer-Encoding", "chunked");
+        add_header("Connection", "keep-alive");
+        add_header("Accept-Ranges", "bytes");
+        add_header("Access-Control-Allow-origin", "*");
         buffers.reserve(headers_.size() * 4 + 5);
         buffers.emplace_back(to_buffer(status_));
         for (auto const& h : headers_) {
