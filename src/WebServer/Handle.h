@@ -117,21 +117,26 @@ void DownloadFile(Response& response, WebRequest& request)
     // }
     static int count = 0;
     switch (chunk.getProcState()) {
-        case DataProcState::DATA_BEGIN:
+        case DataProcState::DATA_BEGIN: {
             response.set_status_and_content(status_type::ok, "",
                                             res_content_type::string);
             chunk.setEnabled(true);
-            break;
+            // std::string str = "chunked data test: " + std::to_string(0);
+            // std::cout << str << std::endl;
+            // response.set_content(std::move(str));
+
+            // chunk.setFinished(true);
+        } break;
         case DataProcState::DATA_CONTINUE: {
             response.clear();
-            if (count < 4) {
+            if (count < 10) {
                 std::string str = "chunked data test: " + std::to_string(count);
-                std::cout << str << std::endl;
-                response.set_content(std::move(str));
+                // std::cout << str << std::endl;
+                response.set_chunked_content(std::move(str));
                 count++;
             }
             else {
-                chunk.setFinished(true);
+                response.set_chunked_content(std::string(), true);
                 count = 0;
             }
 
@@ -147,4 +152,18 @@ void DownloadFile(Response& response, WebRequest& request)
     }
 
     // ifs.close();
+}
+
+void DownloadFileNotChunked(Response& response, WebRequest& request)
+{
+    response.add_header("Transfer-Encoding", "chunked");
+    // std::string str = "chunked data test: 0";
+    // std::string length = to_hex_string(str.size());
+    // std::string content = length + "\r\n" + str + "\r\n" + "0\r\n\r\n";
+    // response.set_status_and_content(status_type::ok, std::move(content),
+    //                                 res_content_type::string);
+
+    std::string str = "chunked data test: " + std::to_string(0);
+    std::cout << str << std::endl;
+    response.set_content(std::move(str));
 }

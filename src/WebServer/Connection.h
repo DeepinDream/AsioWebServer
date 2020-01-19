@@ -75,7 +75,8 @@ class Connection
                     }
                 }
                 else {
-                    std::cout << "server::handle_accept: " << ec.message();
+                    std::cout << "server::handle_accept: " << ec.message()
+                              << std::endl;
                 }
             });
     }
