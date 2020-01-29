@@ -25,6 +25,7 @@ class Response {
     std::vector<boost::asio::const_buffer> to_buffers()
     {
         std::vector<boost::asio::const_buffer> buffers;
+        add_header("Content-Length", std::to_string(content_.size()));
 
         buffers.reserve(headers_.size() * 4 + 5);
         buffers.emplace_back(to_buffer(status_));
@@ -139,7 +140,6 @@ class Response {
 
     void set_content(std::string&& content)
     {
-        add_header("Content-Length", std::to_string(content_.size()));
         content_ = std::move(content);
     }
 
