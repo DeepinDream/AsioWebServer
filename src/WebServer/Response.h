@@ -139,7 +139,7 @@ class Response {
 
     void set_content(std::string&& content)
     {
-        // add_header("Content-Length", std::to_string(content_.size()));
+        add_header("Content-Length", std::to_string(content_.size()));
         content_ = std::move(content);
     }
 
