@@ -147,11 +147,11 @@ inline std::string_view rep_bad_gateway = "HTTP/1.1 502 Bad Gateway\r\n";
 inline std::string_view rep_service_unavailable =
     "HTTP/1.1 503 Service Unavailable\r\n";
 
-inline const char name_value_separator[] = {':', ' '};
+inline const std::string name_value_separator = ": ";
 // inline std::string_view crlf = "\r\n";
 
-inline const char crlf[] = {'\r', '\n'};
-inline const char last_chunk[] = {'0', '\r', '\n'};
+inline const std::string crlf = "\r\n";
+inline const std::string last_chunk = "0\r\n";
 inline const std::string http_chunk_header = "HTTP/1.1 200 OK\r\n"
                                              "Transfer-Encoding: chunked\r\n";
 /*"Content-Type: video/mp4\r\n"
