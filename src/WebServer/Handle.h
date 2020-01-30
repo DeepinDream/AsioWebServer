@@ -132,7 +132,6 @@ void DownloadFile(Response& response, WebRequest& request)
     }
     auto mime = get_mime({filename.data(), filename.length()});
 
-    static int count = 0;
     switch (chunk.getProcState()) {
         case DataProcState::DATA_BEGIN: {
             writeChunkedHeader(response, mime);
@@ -172,13 +171,42 @@ void DownloadFile(Response& response, WebRequest& request)
         case DataProcState::DATA_ALL_END:
         case DataProcState::DATA_CLOSE:
         case DataProcState::DATA_ERR:
-            count = 0;
             chunk.setEnabled(false);
             chunk.setProcState(DataProcState::DATA_BEGIN);
             break;
     }
 
-    // ifs.close();
+    ifs.close();
+}
+
+void ChunkedDataTest(Response& response, WebRequest& request)
+{
+    auto& chunk = response.chunkedData();
+    static int count = 0;
+
+    if (chunk.getProcState() == DataProcState::DATA_BEGIN) {
+        response.set_status_and_content(status_type::ok, "",
+                                        res_content_type::string);
+        chunk.setEnabled(true);
+    }
+
+    else if (chunk.getProcState() == DataProcState::DATA_CONTINUE) {
+        if (count < 10) {
+            std::string str = "chunked data test: " + std::to_string(count);
+            // std::cout << str << std::endl;
+            response.set_chunked_content(std::move(str));
+            count++;
+        }
+        else {
+            response.set_chunked_content(std::string(), true);
+            count = 0;
+        }
+    }
+    else {
+        count = 0;
+        chunk.setEnabled(false);
+        chunk.setProcState(DataProcState::DATA_BEGIN);
+    }
 }
 
 void DownloadFileNotChunked(Response& response, WebRequest& request)

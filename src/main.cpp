@@ -30,6 +30,7 @@ int main(int, char**)
     api.Get(std::string("^/info/?$"), GetInfo);
     api.Get(std::string("^/match/([0-9a-zA-Z]+)/?$"), GetMatch);
     api.Get(std::string("^/download/?(.*)$"), DownloadFile);
+    api.Get(std::string("^/chunktest/?$"), ChunkedDataTest);
     RestfulApi defaultApi(serverPtr->default_resource);
     defaultApi.Get(std::string("^/?(.*)$"), GetDefault);
 
