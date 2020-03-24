@@ -5,8 +5,8 @@
 
 class AsyncLogger;
 
-enum class LogLevel { ERROR, WARNING, DEBUG, NOTICE, INFO };
-const char LEVEL_STR[][4] = {"[E]", "[W]", "[D]", "[N]", "[I]"};
+enum class LogLevel { NOTICE, ERROR, WARNING, INFO, DEBUG };
+const char LEVEL_STR[][4] = {"[N]", "[E]", "[W]", "[I]", "[D]"};
 
 class Logger {
   public:
@@ -62,18 +62,18 @@ class Logger {
 
 #define _LOG_(level) Logger(__PRETTY_FUNCTION__, __LINE__, level).stream()
 
-#define LOG_INFO                                                               \
-    if (LogLevel::INFO <= Logger::getLogLevel())                               \
-    _LOG_(LogLevel::INFO)
-#define LOG_NOTICE                                                             \
-    if (LogLevel::NOTICE <= Logger::getLogLevel())                             \
-    _LOG_(LogLevel::NOTICE)
 #define LOG_DEBUG                                                              \
     if (LogLevel::DEBUG <= Logger::getLogLevel())                              \
     _LOG_(LogLevel::DEBUG)
+#define LOG_INFO                                                               \
+    if (LogLevel::INFO <= Logger::getLogLevel())                               \
+    _LOG_(LogLevel::INFO)
 #define LOG_WANRING                                                            \
     if (LogLevel::WARNING <= Logger::getLogLevel())                            \
     _LOG_(LogLevel::WARNING)
 #define LOG_ERROR                                                              \
     if (LogLevel::ERROR <= Logger::getLogLevel())                              \
     _LOG_(LogLevel::ERROR)
+#define LOG_NOTICE                                                             \
+    if (LogLevel::NOTICE <= Logger::getLogLevel())                             \
+    _LOG_(LogLevel::NOTICE)
