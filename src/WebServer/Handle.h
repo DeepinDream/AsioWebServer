@@ -93,7 +93,8 @@ void GetDefault(Response& response, WebRequest& request)
     else {
         // 文件不存在时，返回无法打开文件
         string content = "Could not open file " + filename;
-        response.set_status_and_content(status_type::ok, std::move(content));
+        response.set_status_and_content(status_type::not_found,
+                                        std::move(content));
     }
 }
 
@@ -104,54 +105,108 @@ inline std::string to_hex_string(std::size_t value)
     return stream.str();
 }
 
+void writeChunkedHeader(Response& response, std::string_view mime)
+{
+    response.add_header("Access-Control-Allow-origin", "*");
+    response.add_header("Content-type", std::string(mime.data(), mime.size()) +
+                                            "; charset=utf8");
+    response.set_status_and_content(status_type::ok, "",
+                                    res_content_type::string);
+    response.chunkedData().setEnabled(true);
+}
+
 void DownloadFile(Response& response, WebRequest& request)
 {
     auto& chunk = response.chunkedData();
 
-    // string filename = getFilePath(request.path_match[1]);
+    string filename = getFilePath(request.path_match[1]);
 
-    // ifstream ifs;
-    // ifs.open(filename, ifstream::in);
-    // if (!ifs) {
-    //     return;
-    // }
-    static int count = 0;
+    ifstream ifs;
+    ifs.open(filename, ifstream::in);
+    if (!ifs) {
+        // 文件不存在时，返回无法打开文件
+        string content = "Could not open file " + filename;
+        response.set_status_and_content(status_type::not_found,
+                                        std::move(content));
+        return;
+    }
+    auto mime = get_mime({filename.data(), filename.length()});
+
     switch (chunk.getProcState()) {
         case DataProcState::DATA_BEGIN: {
-            response.set_status_and_content(status_type::ok, "",
-                                            res_content_type::string);
-            chunk.setEnabled(true);
-            // std::string str = "chunked data test: " + std::to_string(0);
-            // std::cout << str << std::endl;
-            // response.set_content(std::move(str));
-
-            // chunk.setFinished(true);
+            writeChunkedHeader(response, mime);
+            chunk.setSeekPos(0);
         } break;
         case DataProcState::DATA_CONTINUE: {
             response.clear();
-            if (count < 10) {
-                std::string str = "chunked data test: " + std::to_string(count);
-                // std::cout << str << std::endl;
-                response.set_chunked_content(std::move(str));
-                count++;
+            ifs.seekg(0, std::ios::end);
+            size_t size = chunk.k_MaxLength;
+            // size_t size = 3 * 1024;
+            std::string str;
+            str.resize(size);
+            ifs.seekg(chunk.getSeekPos());
+            ifs.read(&str[0], size);
+
+            size_t read_len = (size_t)ifs.gcount();
+            if (read_len != size) {
+                str.resize(read_len);
             }
-            else {
-                response.set_chunked_content(std::string(), true);
-                count = 0;
-            }
+            chunk.addSeekPos(read_len);
+            bool eof = (read_len == 0 || read_len != size);
+            response.set_chunked_content(std::move(str), eof);
+            // if (count < 10) {
+            //     std::string str = "chunked data test: " +
+            //     std::to_string(count);
+            //     // std::cout << str << std::endl;
+            //     response.set_chunked_content(std::move(str));
+            //     count++;
+            // }
+            // else {
+            //     response.set_chunked_content(std::string(), true);
+            //     count = 0;
+            // }
 
         } break;
         case DataProcState::DATA_END:
         case DataProcState::DATA_ALL_END:
         case DataProcState::DATA_CLOSE:
         case DataProcState::DATA_ERR:
-            count = 0;
             chunk.setEnabled(false);
             chunk.setProcState(DataProcState::DATA_BEGIN);
             break;
     }
 
-    // ifs.close();
+    ifs.close();
+}
+
+void ChunkedDataTest(Response& response, WebRequest& request)
+{
+    auto& chunk = response.chunkedData();
+    static int count = 0;
+
+    if (chunk.getProcState() == DataProcState::DATA_BEGIN) {
+        response.set_status_and_content(status_type::ok, "",
+                                        res_content_type::string);
+        chunk.setEnabled(true);
+    }
+
+    else if (chunk.getProcState() == DataProcState::DATA_CONTINUE) {
+        if (count < 10) {
+            std::string str = "chunked data test: " + std::to_string(count);
+            // std::cout << str << std::endl;
+            response.set_chunked_content(std::move(str));
+            count++;
+        }
+        else {
+            response.set_chunked_content(std::string(), true);
+            count = 0;
+        }
+    }
+    else {
+        count = 0;
+        chunk.setEnabled(false);
+        chunk.setProcState(DataProcState::DATA_BEGIN);
+    }
 }
 
 void DownloadFileNotChunked(Response& response, WebRequest& request)

@@ -130,8 +130,9 @@ class Connection
                     }
 
                     if (ec) {
-                        std::cout << "server::handle_accept: " << ec.message()
-                                  << std::endl;
+                        std::cout
+                            << "server::async_chunked_write: " << ec.message()
+                            << std::endl;
                     }
                 });
         }
@@ -145,6 +146,10 @@ class Connection
                     // HTTP 持久连接(HTTP 1.1), 递归调用
                     if (!ec && stof(request.http_version) > 1.05)
                         process_request_and_respond();
+                    else {
+                        std::cout << "server::async_write: " << ec.message()
+                                  << std::endl;
+                    }
                 });
         }
     }

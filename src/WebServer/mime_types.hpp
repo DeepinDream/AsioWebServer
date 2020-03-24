@@ -544,4 +544,21 @@ inline std::string_view get_mime_type(std::string_view extension)
 
     return it->second;
 }
+
+inline std::string_view get_extension(std::string_view name)
+{
+    size_t pos = name.rfind('.');
+    if (pos == std::string_view::npos) {
+        return {};
+    }
+
+    return name.substr(pos);
+}
+
+std::string_view get_mime(std::string_view filename)
+{
+    auto extension = get_extension(filename.data());
+    auto mime = get_mime_type(extension);
+    return mime;
+}
 }  // namespace AsioWeb

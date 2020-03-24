@@ -13,7 +13,7 @@ enum class DataProcState {
 
 class ChunkedData {
   public:
-    static constexpr const unsigned int k_MaxLength = 3 * 1024 * 1024;
+    static constexpr const size_t k_MaxLength = 3 * 1024 * 1024;
     ChunkedData()
         : enabled_(false)
         , seek_pos_(0)
@@ -36,16 +36,21 @@ class ChunkedData {
     {
         seek_pos_ = pos;
     }
+    void addSeekPos(const unsigned int pos)
+    {
+        seek_pos_ += pos;
+    }
+
     unsigned int getSeekPos()
     {
         return seek_pos_;
     }
 
-    void setLength(const unsigned int length)
+    void setLength(const size_t length)
     {
         length_ = length;
     }
-    unsigned int getLength()
+    size_t getLength()
     {
         return length_;
     }
@@ -71,7 +76,7 @@ class ChunkedData {
   private:
     bool enabled_;
     unsigned int seek_pos_;
-    unsigned int length_;
+    size_t length_;
     DataProcState state_;
     bool finished_;
 };

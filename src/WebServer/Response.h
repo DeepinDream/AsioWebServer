@@ -25,6 +25,7 @@ class Response {
     std::vector<boost::asio::const_buffer> to_buffers()
     {
         std::vector<boost::asio::const_buffer> buffers;
+        add_header("Content-Length", std::to_string(content_.size()));
 
         buffers.reserve(headers_.size() * 4 + 5);
         buffers.emplace_back(to_buffer(status_));
@@ -90,20 +91,6 @@ class Response {
         if (chunk_data.size() > 0) {
             // convert bytes transferred count to a hex string.
             std::string chunk_size = to_hex_string(chunk_data.size());
-
-            // Construct chunk based on rfc2616 section 3.6.1
-            // buffers.push_back(boost::asio::buffer(chunk_size,
-            // chunk_size.size()));
-            // buffers.push_back(boost::asio::buffer(crlf));
-            // buffers.push_back(boost::asio::buffer(chunk_data,
-            // chunk_data.size()));
-            // buffers.push_back(boost::asio::buffer(crlf));
-
-            // std::string content = chunk_size + "\r\n" + content_ + "\r\n";
-            // std::cout << content << std::endl;
-            // buffers.push_back(boost::asio::buffer(content));
-
-            std::cout << chunk_data << std::endl;
             buffers.push_back(boost::asio::buffer(chunk_data));
         }
 
@@ -145,13 +132,13 @@ class Response {
 
     void set_chunked_content(std::string&& content, const bool eof = false)
     {
-        if (eof == false && content.size() > 0) {
+        if (content.size() > 0) {
             content_ = get_chunked_content(std::move(content));
         }
 
-        // if (eof) {
-        chunked_data_.setFinished(eof);
-        // }
+        if (eof) {
+            chunked_data_.setFinished(eof);
+        }
     }
 
     void set_status_and_content(status_type status)
