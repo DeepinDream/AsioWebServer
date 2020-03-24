@@ -17,7 +17,7 @@ AppendFile::~AppendFile()
 
 void AppendFile::append(const char* logline, const size_t len)
 {
-    auto n      = this->write(logline, len);
+    auto n = this->write(logline, len);
     auto remain = len - n;
     while (remain > 0) {
         size_t x = this->write(logline + n, remain);
@@ -39,6 +39,6 @@ void AppendFile::flush()
 std::streamoff AppendFile::write(const char* logline, std::streamsize len)
 {
     auto start = fs_.tellp();
-    auto end   = fs_.write(logline, len).tellp();
+    auto end = fs_.write(logline, len).tellp();
     return end - start;
 }

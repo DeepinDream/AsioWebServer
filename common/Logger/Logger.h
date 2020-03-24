@@ -5,7 +5,8 @@
 
 class AsyncLogger;
 
-enum class LogLevel { ERROR, WARNING, INFO };
+enum class LogLevel { ERROR, WARNING, DEBUG, NOTICE, INFO };
+const char LEVEL_STR[][4] = {"[E]", "[W]", "[D]", "[N]", "[I]"};
 
 class Logger {
   public:
@@ -64,6 +65,12 @@ class Logger {
 #define LOG_INFO                                                               \
     if (LogLevel::INFO <= Logger::getLogLevel())                               \
     _LOG_(LogLevel::INFO)
+#define LOG_NOTICE                                                             \
+    if (LogLevel::NOTICE <= Logger::getLogLevel())                             \
+    _LOG_(LogLevel::NOTICE)
+#define LOG_DEBUG                                                              \
+    if (LogLevel::DEBUG <= Logger::getLogLevel())                              \
+    _LOG_(LogLevel::DEBUG)
 #define LOG_WANRING                                                            \
     if (LogLevel::WARNING <= Logger::getLogLevel())                            \
     _LOG_(LogLevel::WARNING)

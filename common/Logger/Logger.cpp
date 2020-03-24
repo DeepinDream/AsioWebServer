@@ -14,8 +14,6 @@ std::string Logger::logFileName_ = "./WebServer.log";
 LogLevel Logger::logLevel_ = LogLevel::INFO;
 bool Logger::coutEnabled_ = false;
 
-static char LEVEL_STR[][4] = {"[E]", "[W]", "[I]"};
-
 void once_init()
 {
     AsyncLogger_.reset(new AsyncLogger(Logger::getLogFileName()));

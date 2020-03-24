@@ -60,7 +60,10 @@
         "forward_list": "cpp",
         "unordered_set": "cpp",
         "set": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "filesystem": "cpp",
+        "numeric": "cpp",
+        "random": "cpp"
     },
     "editor.formatOnSave": true,
     "clang-format.executable": "${workspaceRoot}/.clang-format"
